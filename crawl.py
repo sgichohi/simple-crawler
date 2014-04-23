@@ -94,6 +94,19 @@ class Crawler():
 
 if __name__ == "__main__":
 
-    print "hey"
-    c = Crawler("https://www.digitalocean.com/")
-    print c.getAssets()
+    consider_links = []
+    seen_links = []
+    consider_links.append("https://www.digitalocean.com/")
+    while len(consider_links) > 0:
+        l = consider_links.pop()
+        seen_links.append(l)
+        print l
+        try:
+            c = Crawler(l)
+            # print c.getAssets()
+            new_links = c.getAssets()["Consider_Links"]
+            for link in new_links:
+                if link not in seen_links:
+                    consider_links.append(link)
+        except:
+            continue
