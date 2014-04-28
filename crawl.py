@@ -3,10 +3,11 @@ import sys
 import urllib2
 import urlparse
 import string
+import json
 from bs4 import BeautifulSoup
 
 
-class Crawler():
+class PageExtractor():
 
     links_to_consider = []
     links_on_page = []
@@ -14,23 +15,17 @@ class Crawler():
     js = []
     media = []
 
-    def __init__(self, parent_link):
+    def __init__(self, parent_link, src):
         """This class takes a URL and provides methods to
         obtain the static assets on its page"""
 
-        hdr = {'User-Agent': "Magic Browser"}
         self.parent_link = parent_link
-        try:
-            req = urllib2.Request(self.parent_link, headers=hdr)
-            src = urllib2.urlopen(req).read()
-            self.bs = BeautifulSoup(src, "lxml")
-            self.extractJS()
-            self.extractMedia()
-            self.extractLinks()
-            self.extractImages()
-        except:
-            raise Exception(
-                "The Crawler cannot initiate a connection to the provided link")
+        self.src = src
+        self.bs = BeautifulSoup(self.src, "lxml")
+        self.extractJS()
+        self.extractMedia()
+        self.extractLinks()
+        self.extractImages()
 
     def rDups(self, lst_of_things):
         """Given a list, removes duplicates"""
@@ -38,11 +33,13 @@ class Crawler():
 
     def getAssets(self):
         """Returns a dict of asset types and URLs"""
+        static = self.rDups(self.js + self.images + self.media)
+        # print static
+        # print list(set(self.links_to_consider) - set(static))
         return {
-            "Links": self.rDups(self.links_on_page), "Images": self.rDups(self.images),
-            "JS": self.rDups(self.js), "Media": self.rDups(self.media),
-            "Consider_Links": self.rDups(self.links_to_consider),
-            "Links": self.rDups(self.links_on_page)
+            "Links": self.rDups(self.links_on_page),
+            "Static": static,
+            "Consider_Links": list(set(self.links_to_consider) - set(static)),
         }
 
     def getAbsURL(self, incomplete_url):
@@ -92,21 +89,58 @@ class Crawler():
             if parsedUrl.netloc == urlparse.urlparse(self.parent_link).netloc:
                 self.links_to_consider.append(absUrl)
 
-if __name__ == "__main__":
 
-    consider_links = []
-    seen_links = []
-    consider_links.append("https://www.digitalocean.com/")
+def makeConn(parent_link):
+    hdr = {'User-Agent': "Magic Browser"}
+    try:
+        req = urllib2.Request(parent_link, headers=hdr)
+        src = urllib2.urlopen(req).read()
+
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except:
+        raise Exception(
+            "The Crawler cannot initiate a connection to the provided link")
+    return src
+
+
+def crawl(url):
+
+    consider_links = set()
+    seen_links = set()
+    sitemap = {}
+    consider_links.add(url)
     while len(consider_links) > 0:
         l = consider_links.pop()
-        seen_links.append(l)
-        print l
+        seen_links.add(l)
+
         try:
-            c = Crawler(l)
-            # print c.getAssets()
-            new_links = c.getAssets()["Consider_Links"]
+            src = makeConn(l)
+            c = PageExtractor(l, src)
+            assets = c.getAssets()
+            new_links = assets["Consider_Links"]
+            seen_links.update(assets["Static"])
+            sitemap[l] = {"Static Assets": assets[
+                          "Static"], "Links": assets["Links"]}
+
             for link in new_links:
+
                 if link not in seen_links:
-                    consider_links.append(link)
+                    consider_links.add(link)
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except:
             continue
+    return sitemap
+if __name__ == "__main__":
+    try:
+        root = sys.argv[1]
+
+    except IndexError:
+        print "  Usage: ./crawl.py link"
+        print "  Example: ./crawl.py http://cool.com/"
+        exit()
+    try:
+        print json.dumps(crawl(root), sort_keys=True, indent=4)
+    except:
+            raise
