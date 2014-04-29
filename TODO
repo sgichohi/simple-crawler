@@ -2,8 +2,9 @@ This crawler is obviously incomplete.
 
 Here's a list of remaining tasks:
 
-a) thread the connections so as to maximise the number of connections per unit time
+a) thread the connections so as to maximise the number of connections per unit time. This could be done by having a pool of
+threads that accept URLS in a queue, and return the structure for a page on another queue.
 
-b) have more comprehensive tests
+b) have more comprehensive tests, especially for the crawl method
 
 c) add more hooks for static files, such as css files brought in through @import 
