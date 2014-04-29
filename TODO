@@ -1,0 +1,9 @@
+This crawler is obviously incomplete.
+
+Here's a list of remaining tasks:
+
+a) thread the connections so as to maximise the number of connections per unit time
+
+b) have more comprehensive tests
+
+c) add more hooks for static files, such as css files brought in through @import 

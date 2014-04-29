@@ -1,0 +1,30 @@
+This project is to build a crawler that given a url, crawls each linked page within the urls domain
+and produces the list of pages, and their static assets
+
+To install:
+
+Make sure you have all the libraries by running:
+
+pip install -r requirements.txt
+
+To test:
+
+python test.py
+
+Invoke the crawler on a moderate sized website(far too slow for nytimes) as follows:
+
+python crawl.py url > results.txt
+
+You should see the progress printed on terminal via stderr.
+
+Once the script is done, the results shall be in results.txt in JSON format:
+
+    {
+    "Link: {
+        "Links": [],
+        "Static Assets": [
+
+        ]
+    }
+}
+
