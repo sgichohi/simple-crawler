@@ -8,3 +8,5 @@ threads that accept URLS in a queue, and return the structure for a page on anot
 b) have more comprehensive tests, especially for the crawl method
 
 c) add more hooks for static files, such as css files brought in through @import 
+
+d) respect robots.txt
