@@ -30,13 +30,9 @@ class CrawlerTest(unittest.TestCase):
         self.assertEqual(
             sorted(res), sorted(true))
 
-        print res
-
     def testextractLinks(self):
 
         res, res1 = self.page_ex.extractLinks()
-
-        print res, res1
 
         true1 = ['http://labta.cs.princeton.edu/s14-sched-reading.html',
                  'http://labta.cs.princeton.edu/s14-sched_126226217.html',
@@ -62,6 +58,15 @@ class CrawlerTest(unittest.TestCase):
             sorted(res), sorted(true))
         self.assertEqual(
             sorted(res1), sorted(true1))
+
+    def testextractImages(self):
+
+        res = self.page_ex.extractImages()
+        true = [
+            'http://www.chow.com/uploads/6/6/2/385266_smiley_face_tiny.jpeg']
+
+        self.assertEqual(
+            sorted(res), sorted(true))
 
 
 def main():
