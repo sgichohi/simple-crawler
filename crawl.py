@@ -23,10 +23,10 @@ class PageExtractor():
         self.parent_link = parent_link
         self.src = src
         self.bs = BeautifulSoup(self.src, "lxml")
-        self.extractJS()
-        self.extractMedia()
-        self.extractLinks()
-        self.extractImages()
+        self.js = self.extractJS()
+        self.media = self.extractMedia()
+        self.links_on_page, self.links_to_consider = self.extractLinks()
+        self.images = self.extractImages()
 
     def rDups(self, lst_of_things):
         """Given a list, removes duplicates"""
@@ -61,41 +61,49 @@ class PageExtractor():
         """Computes a list of JS files needed by the
         application
         """
+        js = []
         for i in self.bs.findAll('script', {"src": True}):
 
             absUrl = self.getAbsURL(i['src'])
-            self.js.append(absUrl)
+            js.append(absUrl)
+        return js
 
     def extractMedia(self):
         """Computes a list of Media files"""
-
+        media = []
         for i in self.bs.findAll('link', {'href': True}):
             absUrl = self.getAbsURL(i['href'])
-            self.media.append(absUrl)
+            media.append(absUrl)
+        return media
 
     def extractImages(self):
         """Computes a list of image URLS"""
+        images = []
         for i in self.bs.findAll('img', {'src': True}):
             absUrl = self.getAbsURL(i['src'])
-            self.images.append(absUrl)
+            images.append(absUrl)
+        return images
 
     def extractLinks(self):
         """Computes a list of absolute links on the page"""
 
+        links_to_consider = []
+        links_on_page = []
         tags = self.bs.findAll('a', {'href': True})
         for link in tags:
             absUrl = self.getAbsURL(link['href'])
-            self.links_on_page.append(absUrl)
+            links_on_page.append(absUrl)
             parsedUrl = urlparse.urlparse(absUrl)
             if parsedUrl.netloc == urlparse.urlparse(self.parent_link).netloc:
-                self.links_to_consider.append(absUrl)
+                links_to_consider.append(absUrl)
+        return links_on_page, links_to_consider
 
 
 def makeConn(parent_link, conn):
     """Makes a connection to a web page"""
     hdr = {'User-Agent': "Magic Browser"}
     try:
-        #req = urllib3.Request(parent_link, headers=hdr)
+        # req = urllib3.Request(parent_link, headers=hdr)
         req = conn.request('GET', parent_link, headers=hdr)
 
         src = req.data
@@ -109,14 +117,14 @@ def makeConn(parent_link, conn):
 
 
 def crawl(url, conn):
-    """Takes a url and prints to stdout a list of static assets and links 
+    """Takes a url and prints to stdout a list of static assets and links
     on each linked page in the domain as a JSON object
 
     {
     "Link: {
-        "Links": [], 
+        "Links": [],
         "Static Assets": [
-            
+
         ]
     }
 }
