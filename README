@@ -11,7 +11,7 @@ To test:
 
 python test.py
 
-Invoke the crawler on a moderate sized website(far too slow for nytimes) as follows:
+Invoke the crawler on a moderately sized website(far too slow for nytimes) as follows:
 
 python crawl.py url > results.txt
 
