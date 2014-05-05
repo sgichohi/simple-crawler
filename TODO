@@ -1,8 +1,8 @@
-This crawler is obviously incomplete.
+This crawler is incomplete.
 
 Here's a list of remaining tasks:
 
-a) thread the connections so as to maximise the number of connections per unit time. This could be done by having a pool of
+a) Multithread the connections so as to maximise the number of connections per unit time. This could be done by having a pool of
 threads that accept URLS in a queue, and return the structure for a page on another queue.
 
 b) have more comprehensive tests, especially for the crawl method
