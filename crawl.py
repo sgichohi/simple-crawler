@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 from __future__ import print_function
+import gevent.monkey
+
+gevent.monkey.patch_all()
+import gevent.pool
+
 import sys
-import urllib3
+import requests
 import urlparse
 import string
 import json
@@ -99,24 +104,26 @@ class PageExtractor():
         return links_on_page, links_to_consider
 
 
-def makeConn(parent_link, conn):
+def makeConn(parent_link):
     """Makes a connection to a web page"""
     hdr = {'User-Agent': "Magic Browser"}
     try:
-        # req = urllib3.Request(parent_link, headers=hdr)
-        req = conn.request('GET', parent_link, headers=hdr)
 
-        src = req.data
+        # req = urllib3.Request(parent_link, headers=hdr)
+
+        # print(parent_link)
+        src = requests.get(parent_link, verify=False, headers=hdr)
+        c = PageExtractor(parent_link, src.content)
 
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
-        raise Exception(
-            "The Crawler cannot initiate a connection to the provided link")
-    return src
+        return None
+
+    return c
 
 
-def crawl(url, conn):
+def crawl(url, pool_count=1000):
     """Takes a url and prints to stdout a list of static assets and links
     on each linked page in the domain as a JSON object
 
@@ -130,30 +137,30 @@ def crawl(url, conn):
 }
 
     """
-    consider_links = set()
+    consider_links = []
     seen_links = set()
     sitemap = {}
-    consider_links.add(url)
-    while len(consider_links) > 0:
-        l = consider_links.pop()
-        seen_links.add(l)
-        try:
-            src = makeConn(l, conn)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except:
-            continue
-        c = PageExtractor(l, src)
-        assets = c.getAssets()
-        new_links = assets["Consider_Links"]
-        seen_links.update(assets["Static"])
-        sitemap[l] = {"Static Assets": assets[
-                      "Static"], "Links": assets["Links"]}
-        print("Processing ", l, file=sys.stderr)
-        for link in new_links:
+    pool = gevent.pool.Pool(pool_count)
+    consider_links.append(url)
 
-            if link not in seen_links:
-                consider_links.add(link)
+    while len(consider_links) > 0:
+
+        results = pool.map(makeConn, consider_links)
+        seen_links.update(consider_links)
+        del consider_links[:]
+        for c in results:
+            if c is None:
+                continue
+
+            assets = c.getAssets()
+            seen_links.update(assets["Static"])
+            sitemap[c.parent_link] = {"Static Assets": assets[
+                                      "Static"], "Links": assets["Links"]}
+
+            for link in assets["Consider_Links"]:
+
+                if link not in seen_links:
+                    consider_links.append(link)
 
     return sitemap
 if __name__ == "__main__":
@@ -165,7 +172,7 @@ if __name__ == "__main__":
         print("  Example: ./crawl.py http://cool.com/", file=sys.stderr)
         exit()
     try:
-        conn = urllib3.connection_from_url(root)
-        print(json.dumps(crawl(root, conn), sort_keys=True, indent=4))
+
+        print(json.dumps(crawl(root), sort_keys=True, indent=4))
     except:
         raise

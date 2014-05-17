@@ -1,5 +1,5 @@
 This project is to build a crawler that given a url, crawls each linked page within the urls domain
-and produces the list of pages, and their static assets
+and produces the list of pages, and their static assets.
 
 To install:
 
@@ -11,11 +11,9 @@ To test:
 
 python test.py
 
-Invoke the crawler on a moderately sized website(far too slow for nytimes) as follows:
+Invoke the crawler on a moderately sized website(far too slow for nytimes despite launching 1000 concurrent connections) as follows:
 
 python crawl.py url > results.txt
-
-You should see the progress printed on terminal via stderr.
 
 Once the script is done, the results shall be in results.txt in JSON format:
 
