@@ -1,4 +1,4 @@
-This project is to build a crawler that given a url, crawls each linked page within the urls domain
+The goal of this project is to build a crawler that given a url, crawls each linked page within the urls domain
 and produces the list of pages, and their static assets.
 
 To install:
