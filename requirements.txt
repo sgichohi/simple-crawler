@@ -4,5 +4,5 @@ eventlet==0.14.0
 gevent==1.0.1
 greenlet==0.4.2
 lxml==3.3.5
-requests==2.2.1
+requests==2.20.0
 wsgiref==0.1.2
